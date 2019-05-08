@@ -105,6 +105,9 @@ class LogFileWatcher(object):
         self.command = command
         self.name = name
         self.logfile = logfile
+        decoderFactory = getincrementaldecoder(
+            self.command.builder.unicode_encoding)
+        self.logDecode = decoderFactory(errors='replace')
 
         log.msg("LogFileWatcher created to watch {0}".format(logfile))
         # we are created before the ShellCommand starts. If the logfile we're
@@ -163,7 +166,8 @@ class LogFileWatcher(object):
             data = self.f.read(10000)
             if not data:
                 return
-            self.command.addLogfile(self.name, data)
+            decodedData = self.logDecode.decode(data)
+            self.command.addLogfile(self.name, decodedData)
 
 
 if runtime.platformType == 'posix':
